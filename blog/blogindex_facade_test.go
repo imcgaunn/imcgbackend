@@ -2,6 +2,7 @@ package blog
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
@@ -57,4 +58,17 @@ func TestCanAddAndRetrieve(t *testing.T) {
 		t.Errorf("failed to retrieve inserted entry")
 	}
 	t.Log(retrievedEntry)
+}
+
+func TestSplitS3Uri(t *testing.T) {
+	testS3Uri := "s3://imcgaunn-blog-posts/cool/key/yo"
+	bucket, key := splitS3Uri(testS3Uri)
+	t.Log(fmt.Sprintf("bucket: %s", bucket))
+	t.Log(fmt.Sprintf("key: %s", key))
+	if bucket != "imcgaunn-blog-posts" {
+		t.Errorf("failed to extract bucket correctly")
+	}
+	if key != "cool/key/yo" {
+		t.Errorf("failed to extract key correctly")
+	}
 }

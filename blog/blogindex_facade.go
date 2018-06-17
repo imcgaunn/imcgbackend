@@ -3,7 +3,14 @@ package blog
 import (
 	"database/sql"
 	"log"
+	"regexp"
+	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type BlogIndexEntry struct {
@@ -62,12 +69,34 @@ func GetIndexEntry(entryId int64, db *sql.DB) (BlogIndexEntry, error) {
 	return e, err
 }
 
-func FetchPost(s3Uri string) error {
+func FetchFromS3ByUri(s3Uri string) ([]byte, error) {
 	// go out to s3 and fetch the blog post bytes.
-	return nil
+	bucket, key := splitS3Uri(s3Uri)
+	postBytes, err := FetchFromS3(bucket, key)
+	log.Print(postBytes)
+	return postBytes, err
 }
 
-func FetchPostMeta(s3Uri string) error {
-	// go out to s3 and fetch the blog post metadata bytes.
-	return nil
+func splitS3Uri(s3Uri string) (bucket string, key string) {
+	splitExp := regexp.MustCompile("/")
+	uriComponents := splitExp.Split(s3Uri, -1)
+	return uriComponents[2], strings.Join(uriComponents[3:], "/")
+
+}
+
+func FetchFromS3(bucket string, key string) ([]byte, error) {
+	awsBuff := aws.NewWriteAtBuffer(make([]byte, 4096)) // allocate 4k by default
+	downloader := BuildS3DownloadManager()
+	numBytes, err := downloader.Download(awsBuff, &s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	log.Print(numBytes)
+	return awsBuff.Bytes(), err
+}
+
+func BuildS3DownloadManager() *s3manager.Downloader {
+	sess := session.Must(session.NewSession())
+	svc := s3manager.NewDownloader(sess)
+	return svc
 }
