@@ -1,0 +1,13 @@
+the backend piece of my website is primarily to support
+the blog part. I want the client to be a read-only view of
+a set of posts in s3.
+
+It would be cool if the backend could be an index into an
+s3 bucket. It would keep track of all the blog posts and when
+the frontend asks it, it can fetch the post sources from s3
+and render some html or hiccup that the frontend can use.
+
+the backend can make sure that the generated html doesn't
+contain anything questionable...but it is very likely that the
+html is safe, because the sources are all written by me. why
+would I play myself?
