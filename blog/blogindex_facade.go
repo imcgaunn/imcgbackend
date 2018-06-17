@@ -37,15 +37,14 @@ func CreateIndexTable(tableName string, db *sql.DB) error {
 
 func AddIndexEntry(e BlogIndexEntry, db *sql.DB) (sql.Result, error) {
 	insertStatement := `INSERT INTO blogposts
-(ID, post_s3_loc, post_meta_s3_loc, created_time)
-VALUES(?, ?, ?, ?)`
+(post_s3_loc, post_meta_s3_loc, created_time)
+VALUES(?, ?, ?)`
 	stmnt, err := db.Prepare(insertStatement)
 	if err != nil {
 		log.Print(err)
 		panic("failed to prepare index entry insert statement")
 	}
-	res, err := stmnt.Exec(e.ID,
-		e.post_s3_loc,
+	res, err := stmnt.Exec(e.post_s3_loc,
 		e.post_meta_s3_loc,
 		e.created_time.Format(time.UnixDate))
 	log.Print(res)
@@ -78,7 +77,7 @@ func FetchFromS3ByUri(s3Uri string) ([]byte, error) {
 }
 
 func splitS3Uri(s3Uri string) (bucket string, key string) {
-	splitExp := regexp.MustCompile("/")
+	splitExp := regexp.MustCompile("/") // just die
 	uriComponents := splitExp.Split(s3Uri, -1)
 	return uriComponents[2], strings.Join(uriComponents[3:], "/")
 

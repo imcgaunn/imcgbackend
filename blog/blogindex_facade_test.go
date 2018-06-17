@@ -19,12 +19,11 @@ func TestCanAddAndRemoveIndexEntry(t *testing.T) {
 		t.Errorf("failed to open sqlite database in memory")
 	}
 	CreateIndexTable("blogposts", db)
-	res, err := AddIndexEntry(BlogIndexEntry{
-		ID:               111111,
-		post_s3_loc:      "greatbucket/key/path/here",
+	res, err := AddIndexEntry(BlogIndexEntry{post_s3_loc: "greatbucket/key/path/here",
 		post_meta_s3_loc: "greatbucket/key/path/here",
 		created_time:     time.Now()}, db)
 	id, err := res.LastInsertId()
+	t.Log(fmt.Sprintf("inserted at id: %d", id))
 	if err != nil {
 		t.Errorf("failed to insert index entry")
 	}
