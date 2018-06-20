@@ -1,4 +1,4 @@
-package blog
+package index
 
 import (
 	"database/sql"
@@ -71,3 +71,14 @@ func TestSplitS3Uri(t *testing.T) {
 		t.Errorf("failed to extract key correctly")
 	}
 }
+
+// NB: not really a repeatable test.
+// func TestRetrieve(t *testing.T) {
+// 	testS3Uri := "s3://imcgaunn-blog-posts/post.edn"
+// 	post, _, err := FetchPostFromS3ByUri(testS3Uri)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		t.Errorf("failed to fetch post from s3")
+// 	}
+// 	t.Log(string(post))
+// }

@@ -12,10 +12,8 @@ provider:
       Action:
         - "s3:*"
       Resource:
-        Fn::Join:
-          - ""
-          - - "arn:aws:s3:::"
-            - "Ref"
+        - "arn:aws:s3:::imcgaunn-blog-posts"
+        - "arn:aws:s3:::imcgaunn-blog-posts/*"
     - Effect: "Allow"
       Action:
         - "s3:ListBucket"
@@ -52,6 +50,13 @@ functions:
     events:
       - http:
           path: world
+          method: get
+
+  blog:
+    handler: bin/blog
+    events:
+      - http:
+          path: blog
           method: get
 
 
