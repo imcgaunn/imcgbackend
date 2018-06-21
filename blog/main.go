@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	_ "github.com/mattn/go-sqlite3"
 
 	"imcgbackend/blog/index"
 )
@@ -43,7 +44,7 @@ func getBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 	if err != nil {
 		return BuildFailureResponseWithBody("failed to save post index"), err
 	}
-	dbConn, err := sql.Open("sqlite3", "/tmp/index.sqlite") //
+	dbConn, err := sql.Open("sqlite3", "file:/tmp/index.sqlite?_loc=auto")
 	if err != nil {
 		return BuildFailureResponseWithBody("failed access post index"), err
 	}
