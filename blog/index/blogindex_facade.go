@@ -3,7 +3,6 @@ package index
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -37,7 +36,7 @@ func CreateIndexTable(tableName string, db *sql.DB) error {
  created_time date)`
 	stmnt, err := db.Prepare(createStatement)
 	if err != nil {
-		log.Print(err)
+		fmt.Println(err)
 		panic("failed to prepare create table statement")
 	}
 	_, err = stmnt.Exec()
@@ -50,20 +49,20 @@ func AddIndexEntry(e BlogIndexEntry, db *sql.DB) (sql.Result, error) {
 VALUES(?, ?, ?)`
 	stmnt, err := db.Prepare(insertStatement)
 	if err != nil {
-		log.Print(err)
+		fmt.Println(err)
 		panic("failed to prepare index entry insert statement")
 	}
 	res, err := stmnt.Exec(e.PostS3Loc,
 		e.PostMetaS3Loc,
 		e.CreatedTime.Format(time.UnixDate))
-	log.Print(res)
+	fmt.Println(res)
 	return res, err
 }
 
 func RemoveIndexEntry(entryId int64, db *sql.DB) error {
 	stmnt, err := db.Prepare("DELETE FROM blogposts WHERE ID=?")
 	if err != nil {
-		log.Print(err)
+		fmt.Println(err)
 		panic("failed to prepare index entry delete statement")
 	}
 	_, err = stmnt.Exec(entryId)
@@ -96,8 +95,6 @@ func FetchPostFromS3(bucket string, key string) (BlogPost, error) {
 		return BlogPost{}, err
 	}
 	stringBuilder.Write(PostBytes)
-	// TODO: finalize BlogPost struct format
-	// and return a populated one.
 	return BlogPost{
 		Title:   "Great", // TODO: real code for this
 		Content: stringBuilder.String(),
