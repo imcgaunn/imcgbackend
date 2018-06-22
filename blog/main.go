@@ -34,7 +34,7 @@ func getBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 	queryParams := request.QueryStringParameters
 	postId, err := strconv.ParseInt(queryParams["id"], 10, 64)
 	if err != nil {
-		return BuildFailureResponseWithBody("failed to parse int duhhh"), err
+		return BuildFailureResponseWithBody("invalid post id. must be an integer!"), err
 	}
 	dbFileBytes, err := index.GetIndexDbFile()
 	if err != nil {
