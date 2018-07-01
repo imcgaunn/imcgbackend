@@ -1,0 +1,3 @@
+atom plugins for go development:
+1.https://atom.io/packages/go-signature-statusbar go-signature-statusbar
+2.https://atom.io/packages/go-plus go-plus

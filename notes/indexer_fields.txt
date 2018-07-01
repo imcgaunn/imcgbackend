@@ -1,0 +1,21 @@
+indexer fields
+==
+
+the blog post indexer will open posts in s3 and
+peek at some metadata at the beginning of each post.
+
+there are only a few supported keywords, i'd like to
+keep this basic.
+
+also, for now, all of these keywords will stay in the body of
+the post that appears on the website. that is good incentive to
+avoid getting crazy with these; the users will see it.
+as long as keywords are also relevant information to users,
+this should be fine.
+
+keywords
+==
+title: -> the title the post should have on the blog.
+tags: -> optional tags that should be included in the
+        post's index entry. this is nice for quickly
+        retrieving slices of blog posts based on mysterious criteria.
