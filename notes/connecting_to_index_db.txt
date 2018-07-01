@@ -1,0 +1,17 @@
+connecting to sqlite database with usql
+
+at $
+
+$ usql
+(usql) $ \connect sqlite3 :memory:
+
+OR
+
+$ usql
+(usql) $ \connect sqlite3:/path/to/file
+
+and then start queryin' away.
+
+there are some other shortcuts that i should
+learn about as well. usql works with all
+different kinds of databases.

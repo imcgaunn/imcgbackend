@@ -1,0 +1,8 @@
+idea for maintaining blog index:
+
+add notification on s3 bucket
+whenever a new post is added, trigger a lambda
+process to update the index db.
+
+since the web clients are read-only, i don't think this
+will cause any weird concurrency issues.

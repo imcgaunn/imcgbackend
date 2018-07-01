@@ -25,7 +25,7 @@ provider:
         Fn::Join:
           - ""
           - - "arn:aws:s3:::"
-            - "Ref" : "ServerlessDeploymentBucket"
+            - Ref: "ServerlessDeploymentBucket"
             - "/*"
 
 package:
@@ -41,3 +41,5 @@ functions:
       - http:
           path: blog
           method: get
+  blog-indexer:
+    handler: bin/blog_indexer

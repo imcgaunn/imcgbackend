@@ -19,7 +19,7 @@ func TestCanAddAndRemoveIndexEntry(t *testing.T) {
 		t.Errorf("failed to open sqlite database in memory")
 	}
 	CreateIndexTable("blogposts", db)
-	res, err := AddIndexEntry(BlogIndexEntry{
+	res, _ := AddIndexEntry(BlogIndexEntry{
 		PostS3Loc:     "greatbucket/key/path/here",
 		PostMetaS3Loc: "greatbucket/key/path/here",
 		CreatedTime:   time.Now()}, db)
@@ -29,7 +29,7 @@ func TestCanAddAndRemoveIndexEntry(t *testing.T) {
 		t.Errorf("failed to insert index entry")
 	}
 	// ACT
-	err = RemoveIndexEntry(id, db)
+	RemoveIndexEntry(id, db)
 	_, err = GetIndexEntry(id, db)
 	if err == nil {
 		t.Errorf("was able to retrieve removed post")
@@ -43,7 +43,7 @@ func TestCanAddAndRetrieve(t *testing.T) {
 		t.Errorf("failed to open sqlite database in memory")
 	}
 	CreateIndexTable("blogposts", db)
-	res, err := AddIndexEntry(BlogIndexEntry{
+	res, _ := AddIndexEntry(BlogIndexEntry{
 		ID:            111111,
 		PostS3Loc:     "greatbucket/key/path/here",
 		PostMetaS3Loc: "greatbucket/key/path/here",
@@ -72,14 +72,3 @@ func TestSplitS3Uri(t *testing.T) {
 		t.Errorf("failed to extract key correctly")
 	}
 }
-
-// NB: not really a repeatable test.
-// func TestRetrieve(t *testing.T) {
-// 	testS3Uri := "s3://imcgaunn-blog-posts/post.edn"
-// 	post, _, err := FetchPostFromS3ByUri(testS3Uri)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		t.Errorf("failed to fetch post from s3")
-// 	}
-// 	t.Log(string(post))
-// }
