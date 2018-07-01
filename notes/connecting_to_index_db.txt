@@ -1,3 +1,6 @@
+install usql:
+$ go get -u github.com/xo/usql
+
 connecting to sqlite database with usql
 
 at $
