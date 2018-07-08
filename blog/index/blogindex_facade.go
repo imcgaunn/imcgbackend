@@ -3,6 +3,7 @@ package index
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -125,6 +126,12 @@ func BuildS3DownloadManager() *s3manager.Downloader {
 	return svc
 }
 
+func BuildS3UploadManager() *s3manager.Uploader {
+	sess := session.Must(session.NewSession())
+	svc := s3manager.NewUploader(sess)
+	return svc
+}
+
 func GetIndexDbFile() ([]byte, error) {
 	fmt.Println("attempting to fetch index file")
 	indexFile, err := FetchBytesFromS3(PostBucket, IndexDbPath)
@@ -132,4 +139,26 @@ func GetIndexDbFile() ([]byte, error) {
 		fmt.Println("Failed to fetch index file :(")
 	}
 	return indexFile, err
+}
+
+func PutIndexDbFile(localPath string) error {
+	fmt.Printf("attempting to persist index file to %s", localPath)
+	indexBucket, indexKey := splitS3Uri(IndexDbPath)
+	indexFile, err := os.Open("/tmp/index.sqlite")
+	if err != nil {
+		fmt.Print(err)
+		return err
+	}
+	uploader := BuildS3UploadManager()
+	uploadInput := s3manager.UploadInput{
+		Bucket: &indexBucket,
+		Key:    &indexKey,
+		Body:   indexFile,
+	}
+	out, err := uploader.Upload(&uploadInput)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("successfully updated index in s3 at %s\n", out.Location)
+	return nil
 }

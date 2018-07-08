@@ -36,6 +36,13 @@ func BuildS3DownloadManager() *s3manager.Downloader {
 	return svc
 }
 
+// TODO: figure out if it is practical to share this code with 'index' module
+func BuildS3UploadManager() *s3manager.Uploader {
+	sess := session.Must(session.NewSession())
+	svc := s3manager.NewUploader(sess)
+	return svc
+}
+
 func extractPostHeaderLines(postLines []string) ([]string, error) {
 	// fetch metadata from the beginning of the post
 	// scan until you see prelude's bottom marker.
@@ -100,7 +107,7 @@ func downloadIndexIfNecessary() *sql.DB {
 	return conn
 }
 
-func processIncomingPost(bucket string, key string, eventTime time.Time, downloader *s3manager.Downloader) {
+func processIncomingPost(bucket string, key string, eventTime time.Time, downloader *s3manager.Downloader, uploader *s3manager.Uploader) {
 	buffer := aws.NewWriteAtBuffer(make([]byte, 1024))
 	bytesRead, err := downloader.Download(buffer, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
@@ -137,10 +144,16 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		log.Printf("failed to add index entry to the database")
 		log.Fatal(err)
 	}
+	log.Print(res)
 	log.Print("added to database: ")
 	log.Print(newindexEntry)
-	log.Print(res)
 	log.Print(postMetaData)
+
+	log.Print("persisting db changes to storage backend (s3)")
+	err = index.PutIndexDbFile("/tmp/index.sqlite")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func updateBlogIndex(ctx context.Context, s3Event events.S3Event) {
@@ -156,7 +169,12 @@ func updateBlogIndex(ctx context.Context, s3Event events.S3Event) {
 		evtTime := record.EventTime
 		s3 := record.S3
 		downloader := BuildS3DownloadManager()
-		processIncomingPost(s3.Bucket.Name, s3.Object.Key, evtTime, downloader)
+		uploader := BuildS3UploadManager()
+		processIncomingPost(s3.Bucket.Name,
+			s3.Object.Key,
+			evtTime,
+			downloader,
+			uploader)
 	}
 	log.Printf("successfully updated index :) :) ")
 }
