@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func printEventDetails(eventRecord events.S3EventRecord) {
