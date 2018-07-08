@@ -60,6 +60,31 @@ func TestCanAddAndRetrieve(t *testing.T) {
 	t.Log(retrievedEntry)
 }
 
+func TestCanRetrieveByS3Uri(t *testing.T) {
+	db, err := sql.Open("sqlite3", ":memory:")
+	defer db.Close()
+	if err != nil {
+		t.Errorf("failed to open sqlite database in memory :(")
+	}
+	CreateIndexTable("blogposts", db)
+	res, _ := AddIndexEntry(BlogIndexEntry{
+		ID:            111111,
+		PostS3Loc:     "greatbucket/key/path/here",
+		PostMetaS3Loc: "doesntreallymatter/",
+		CreatedTime:   time.Now()}, db)
+	id, err := res.LastInsertId()
+	if err != nil {
+		t.Errorf("failed to insert index entry")
+	}
+	t.Logf("added index entry %d", id)
+
+	retrievedEntry, err := GetIndexEntryByS3Location("greatbucket/key/path/here", db)
+	if err != nil {
+		t.Errorf("couldn't retrieve post that i just inserted")
+	}
+	t.Logf("added index entry with id: %d", retrievedEntry.ID)
+}
+
 func TestSplitS3Uri(t *testing.T) {
 	testS3Uri := "s3://imcgaunn-blog-posts/cool/key/yo"
 	bucket, key := splitS3Uri(testS3Uri)

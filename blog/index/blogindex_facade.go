@@ -76,6 +76,13 @@ func GetIndexEntry(entryId int64, db *sql.DB) (BlogIndexEntry, error) {
 	return *e, err
 }
 
+func GetIndexEntryByS3Location(location string, db *sql.DB) (BlogIndexEntry, error) {
+	e := &BlogIndexEntry{}
+	row := db.QueryRow("SELECT * from blogposts WHERE post_s3_loc=$1", location)
+	err := row.Scan(&e.ID, &e.PostS3Loc, &e.PostMetaS3Loc, &e.CreatedTime)
+	return *e, err
+}
+
 func FetchPostFromS3ByUri(s3Uri string) (BlogPost, error) {
 	bucket, key := splitS3Uri(s3Uri)
 	post, err := FetchPostFromS3(bucket, key)
