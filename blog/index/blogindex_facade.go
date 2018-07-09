@@ -143,7 +143,7 @@ func GetIndexDbFile() ([]byte, error) {
 
 func PutIndexDbFile(localPath string) error {
 	fmt.Printf("attempting to persist index file to %s", localPath)
-	indexBucket, indexKey := splitS3Uri(IndexDbPath)
+	indexBucket, indexKey := PostBucket, IndexDbPath
 	indexFile, err := os.Open("/tmp/index.sqlite")
 	if err != nil {
 		fmt.Print(err)

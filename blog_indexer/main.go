@@ -50,16 +50,11 @@ func extractPostHeaderLines(postLines []string) ([]string, error) {
 	for pos, str := range postLines {
 		if str[:3] == ">>>" {
 			lastHeaderRowIdx = pos
-			log.Println(str)
 			break
 		}
 	}
 	if lastHeaderRowIdx > 0 {
-		log.Printf("the header, yo: \n")
 		headerLines := postLines[:lastHeaderRowIdx]
-		for line := range headerLines {
-			log.Println(headerLines[line])
-		}
 		return headerLines, nil
 	}
 	return nil, errors.New("failed to extract header")
@@ -117,15 +112,14 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		panic(err)
 	}
 	db := downloadIndexIfNecessary()
-	defer db.Close()
 	postS3Uri := fmt.Sprintf("s3://%s/%s", bucket, key)
 	ie, err := index.GetIndexEntryByS3Location(postS3Uri, db)
 	if err != nil {
 		log.Printf("there's already an index entry for this post [%s] so i'm ignoring it\n", postS3Uri)
-		log.Print("the new index entry has this info: ")
+		log.Print("the existing index entry has this info: ")
 		log.Print(ie)
+		return
 	}
-
 	postContent := string(buffer.Bytes()[:bytesRead])
 	postLines := strings.Split(postContent, "\n")
 	headerLines, err := extractPostHeaderLines(postLines)
@@ -144,6 +138,7 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		log.Printf("failed to add index entry to the database")
 		log.Fatal(err)
 	}
+	db.Close()
 	log.Print(res)
 	log.Print("added to database: ")
 	log.Print(newindexEntry)
