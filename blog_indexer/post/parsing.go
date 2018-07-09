@@ -45,7 +45,7 @@ func parseHeaderLine(line string) (map[string]string, error) {
 		return nil, errors.New("invalid header line")
 	}
 	metaData := map[string]string{
-		components[0]: components[1],
+		strings.TrimSpace(components[0]): strings.TrimSpace(components[1]),
 	}
 	return metaData, nil
 }
