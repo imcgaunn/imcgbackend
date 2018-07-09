@@ -33,6 +33,9 @@ func extractPostHeaderLines(postLines []string) ([]string, error) {
 	// scan until you see prelude's bottom marker.
 	lastHeaderRowIdx := -1
 	for pos, str := range postLines {
+		if len(str) < 3 {
+			continue
+		}
 		if str[:3] == ">>>" {
 			lastHeaderRowIdx = pos
 			break
@@ -96,23 +99,30 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 	if err != nil {
 		panic(err)
 	}
+
 	db := downloadIndexIfNecessary()
 	postS3Uri := fmt.Sprintf("s3://%s/%s", bucket, key)
 	ie, err := index.GetIndexEntryByS3Location(postS3Uri, db)
-	if err != nil {
+	if err != nil && ie.ID != 0 {
 		log.Printf("there's already an index entry for this post [%s] so i'm ignoring it\n", postS3Uri)
 		log.Print("the existing index entry has this info: ")
 		log.Print(ie)
 		return
 	}
+
 	postContent := string(buffer.Bytes()[:bytesRead])
 	postLines := strings.Split(postContent, "\n")
 	headerLines, err := extractPostHeaderLines(postLines)
+	headerPresent := true
 	if err != nil {
 		log.Printf("there doesn't seem to be a real header. too bad :(")
-		return
+		headerPresent = false
 	}
-	postMetaData := parseHeaderLines(headerLines)
+	if headerPresent {
+		postMetaData := parseHeaderLines(headerLines)
+		log.Print(postMetaData)
+	}
+
 	newindexEntry := index.BlogIndexEntry{PostS3Loc: postS3Uri,
 		PostMetaS3Loc: "nothinyet.metadataisinline",
 		CreatedTime:   eventTime}
@@ -122,12 +132,11 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		log.Printf("failed to add index entry to the database")
 		log.Fatal(err)
 	}
+
 	db.Close()
 	log.Print(res)
 	log.Print("added to database: ")
 	log.Print(newindexEntry)
-	log.Print(postMetaData)
-
 	log.Print("persisting db changes to storage backend (s3)")
 	err = index.PutIndexDbFile("/tmp/index.sqlite")
 	if err != nil {
@@ -155,7 +164,6 @@ func updateBlogIndex(ctx context.Context, s3Event events.S3Event) {
 			downloader,
 			uploader)
 	}
-	log.Printf("successfully updated index :) :) ")
 }
 
 func main() {
