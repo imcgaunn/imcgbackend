@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	_ "github.com/mattn/go-sqlite3"
@@ -27,20 +26,6 @@ func printEventDetails(eventRecord events.S3EventRecord) {
 	log.Printf("event time: [%s]\n", eventRecord.EventTime)
 	log.Printf("bucket, key: [%s, %s]\n", eventRecord.S3.Bucket.Name, eventRecord.S3.Object.Key)
 	log.Printf("--\n")
-}
-
-// TODO: figure out if it is practical to share this code with 'index' module
-func BuildS3DownloadManager() *s3manager.Downloader {
-	sess := session.Must(session.NewSession())
-	svc := s3manager.NewDownloader(sess)
-	return svc
-}
-
-// TODO: figure out if it is practical to share this code with 'index' module
-func BuildS3UploadManager() *s3manager.Uploader {
-	sess := session.Must(session.NewSession())
-	svc := s3manager.NewUploader(sess)
-	return svc
 }
 
 func extractPostHeaderLines(postLines []string) ([]string, error) {
@@ -128,7 +113,6 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		return
 	}
 	postMetaData := parseHeaderLines(headerLines)
-
 	newindexEntry := index.BlogIndexEntry{PostS3Loc: postS3Uri,
 		PostMetaS3Loc: "nothinyet.metadataisinline",
 		CreatedTime:   eventTime}
@@ -163,8 +147,8 @@ func updateBlogIndex(ctx context.Context, s3Event events.S3Event) {
 
 		evtTime := record.EventTime
 		s3 := record.S3
-		downloader := BuildS3DownloadManager()
-		uploader := BuildS3UploadManager()
+		downloader := index.BuildS3DownloadManager()
+		uploader := index.BuildS3UploadManager()
 		processIncomingPost(s3.Bucket.Name,
 			s3.Object.Key,
 			evtTime,
