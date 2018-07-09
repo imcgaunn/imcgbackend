@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"imcgbackend/blog/index"
+	"imcgbackend/blog_indexer/post"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -26,51 +26,6 @@ func printEventDetails(eventRecord events.S3EventRecord) {
 	log.Printf("event time: [%s]\n", eventRecord.EventTime)
 	log.Printf("bucket, key: [%s, %s]\n", eventRecord.S3.Bucket.Name, eventRecord.S3.Object.Key)
 	log.Printf("--\n")
-}
-
-func extractPostHeaderLines(postLines []string) ([]string, error) {
-	// fetch metadata from the beginning of the post
-	// scan until you see prelude's bottom marker.
-	lastHeaderRowIdx := -1
-	for pos, str := range postLines {
-		if len(str) < 3 {
-			continue
-		}
-		if str[:3] == ">>>" {
-			lastHeaderRowIdx = pos
-			break
-		}
-	}
-	if lastHeaderRowIdx > 0 {
-		headerLines := postLines[:lastHeaderRowIdx]
-		return headerLines, nil
-	}
-	return nil, errors.New("failed to extract header")
-}
-
-func parseHeaderLines(lines []string) map[string]string {
-	metaDataMap := make(map[string]string)
-	for line := range lines {
-		newMap, err := parseHeaderLine(lines[line])
-		if err != nil {
-			panic("encountered bad header line bye bye")
-		}
-		for newKey, val := range newMap {
-			metaDataMap[newKey] = val
-		}
-	}
-	return metaDataMap
-}
-
-func parseHeaderLine(line string) (map[string]string, error) {
-	components := strings.Split(line, ":")
-	if len(components) < 2 {
-		return nil, errors.New("invalid header line")
-	}
-	metaData := map[string]string{
-		components[0]: components[1],
-	}
-	return metaData, nil
 }
 
 func downloadIndexIfNecessary() *sql.DB {
@@ -112,14 +67,14 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 
 	postContent := string(buffer.Bytes()[:bytesRead])
 	postLines := strings.Split(postContent, "\n")
-	headerLines, err := extractPostHeaderLines(postLines)
+	headerLines, err := post.ExtractPostHeaderLines(postLines)
 	headerPresent := true
 	if err != nil {
 		log.Printf("there doesn't seem to be a real header. too bad :(")
 		headerPresent = false
 	}
 	if headerPresent {
-		postMetaData := parseHeaderLines(headerLines)
+		postMetaData := post.ParseHeaderLines(headerLines)
 		log.Print(postMetaData)
 	}
 
