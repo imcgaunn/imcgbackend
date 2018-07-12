@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 )
 
 func TestCanAddAndRemoveIndexEntry(t *testing.T) {
@@ -33,6 +34,31 @@ func TestCanAddAndRemoveIndexEntry(t *testing.T) {
 	_, err = GetIndexEntry(id, db)
 	if err == nil {
 		t.Errorf("was able to retrieve removed post")
+	}
+}
+
+func createAndPopulateIndexTableWithTestData() *sql.DB {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		log.Fatal("failed to open sqlite database in memory")
+	}
+	CreateIndexTable("blogposts", db)
+	for i := 0; i < 444; i++ {
+		AddIndexEntry(BlogIndexEntry{PostS3Loc: fmt.Sprintf("loc%d", i),
+		PostMetaS3Loc: fmt.Sprintf("metaLoc%d", i),
+		CreatedTime: time.Now()}, db)
+	}
+	return db
+}
+
+func TestGetAllIndexEntries(t *testing.T) {
+	indexDb := createAndPopulateIndexTableWithTestData()
+	entries, err := GetAllIndexEntries(indexDb)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		t.Log(e)
 	}
 }
 

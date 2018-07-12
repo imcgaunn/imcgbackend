@@ -77,6 +77,30 @@ func GetIndexEntry(entryId int64, db *sql.DB) (BlogIndexEntry, error) {
 	return *e, err
 }
 
+func GetAllIndexEntries(db *sql.DB) ([]BlogIndexEntry, error) {
+	entries := []BlogIndexEntry{}
+	rows, err := db.Query("SELECT * FROM blogposts")
+	if err != nil {
+		return entries, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		e := &BlogIndexEntry{}
+		err = rows.Scan(&e.ID,
+			&e.PostS3Loc,
+			&e.PostMetaS3Loc,
+			&e.CreatedTime)
+		if err != nil {
+			return entries, err
+		}
+		entries = append(entries, *e)
+	}
+	if err := rows.Err(); err != nil {
+		return []BlogIndexEntry{}, err
+	}
+	return entries, nil
+}
+
 func GetIndexEntryByS3Location(location string, db *sql.DB) (BlogIndexEntry, error) {
 	e := &BlogIndexEntry{}
 	row := db.QueryRow("SELECT * from blogposts WHERE post_s3_loc=$1", location)
