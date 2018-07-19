@@ -15,10 +15,10 @@ import (
 )
 
 type BlogIndexEntry struct {
-	ID            int64
-	PostS3Loc     string
-	PostMetaS3Loc string
-	CreatedTime   time.Time
+	ID            int64     `edn:"id"`
+	PostS3Loc     string    `edn:"post-s3-loc"`
+	PostMetaS3Loc string    `edn:"post-meta-s3-loc"`
+	CreatedTime   time.Time `edn:"created-time"`
 }
 
 type BlogPost struct {
