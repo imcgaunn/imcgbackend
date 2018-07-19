@@ -15,7 +15,7 @@ import (
 	"imcgbackend/blog/index"
 )
 
-func getBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func GetBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	queryParams := request.QueryStringParameters
 	postID, err := strconv.ParseInt(queryParams["id"], 10, 64)
 	if err != nil {
@@ -45,5 +45,5 @@ func getBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 }
 
 func main() {
-	lambda.Start(getBlogPost)
+	lambda.Start(GetBlogPost)
 }
