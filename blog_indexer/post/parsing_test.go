@@ -1,9 +1,9 @@
 package post
 
 import (
-	"testing"
-	"strings"
 	"fmt"
+	"strings"
+	"testing"
 )
 
 func TestCanExtractHeaderLinesFromPost(t *testing.T) {
@@ -22,11 +22,11 @@ somepostcontent
 	expectedMap := map[string]string{
 		"pairs": "are",
 		"great": "things",
-		"key": "value",
+		"key":   "value",
 	}
 	for k, v := range expectedMap {
 		t.Log(fmt.Sprintf("k, v: [%s, %s]", k, v))
-		if (headerMap[k] != v) {
+		if headerMap[k] != v {
 			t.Log(headerMap[k])
 			t.Fatal(fmt.Sprintf("headerMap didn't have expected result for %s", k))
 		}

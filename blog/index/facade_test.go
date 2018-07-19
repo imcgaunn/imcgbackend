@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"log"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestCanAddAndRemoveIndexEntry(t *testing.T) {
@@ -45,8 +46,8 @@ func createAndPopulateIndexTableWithTestData() *sql.DB {
 	CreateIndexTable("blogposts", db)
 	for i := 0; i < 444; i++ {
 		AddIndexEntry(BlogIndexEntry{PostS3Loc: fmt.Sprintf("loc%d", i),
-		PostMetaS3Loc: fmt.Sprintf("metaLoc%d", i),
-		CreatedTime: time.Now()}, db)
+			PostMetaS3Loc: fmt.Sprintf("metaLoc%d", i),
+			CreatedTime:   time.Now()}, db)
 	}
 	return db
 }
