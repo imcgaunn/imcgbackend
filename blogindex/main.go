@@ -35,10 +35,14 @@ func GetBlogIndex(ctx context.Context, request events.APIGatewayProxyRequest) (e
 	conn := downloadIndexIfNecessary()
 	indexEntries, err := index.GetAllIndexEntries(conn)
 	if err != nil {
-		return apigateway.BuildFailureResponse("failed to retrieve index entries"), err
+		return apigateway.BuildFailureResponse("failed to retrieve index entries", map[string]string{
+			"Access-Control-Allow-Origin" : "*",
+			"Content-Type": "text/plain"}), err
 	}
 	indexEntriesEdn, err := edn.MarshalIndent(indexEntries, "", "  ")
-	return apigateway.BuildSuccessResponse(string(indexEntriesEdn)), nil
+	return apigateway.BuildSuccessResponse(string(indexEntriesEdn), map[string]string{
+		"Access-Control-Allow-Origin" : "*",
+		"Content-Type": "application/edn"}), nil
 }
 
 func main() {

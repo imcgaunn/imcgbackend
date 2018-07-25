@@ -2,13 +2,11 @@ package apigateway
 
 import "github.com/aws/aws-lambda-go/events"
 
-func BuildSuccessResponse(body string) events.APIGatewayProxyResponse {
+func BuildSuccessResponse(body string, headers map[string]string) events.APIGatewayProxyResponse {
 	return events.APIGatewayProxyResponse{
 		Body:       body,
 		StatusCode: 200,
-		Headers: map[string]string{
-			"Access-Control-Allow-Origin" : "*",
-			"Content-Type": "application/edn"},
+		Headers: headers,
 	}
 }
 
