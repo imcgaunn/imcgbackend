@@ -10,12 +10,10 @@ func BuildSuccessResponse(body string, headers map[string]string) events.APIGate
 	}
 }
 
-func BuildFailureResponse(body string) events.APIGatewayProxyResponse {
+func BuildFailureResponse(body string, headers map[string]string) events.APIGatewayProxyResponse {
 	return events.APIGatewayProxyResponse{
 		Body:       body,
 		StatusCode: 500,
-		Headers: map[string]string{
-			"Access-Control-Allow-Origin": "*",
-			"Content-Type": "application/edn"},
+		Headers: headers,
 	}
 }

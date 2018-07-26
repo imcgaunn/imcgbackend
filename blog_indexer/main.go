@@ -78,6 +78,11 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		log.Print(postMetaData)
 	}
 
+	// TODO: add metadata that we just retrieved
+	// to the index entry.
+	// Should get rid of PostMetaS3Loc because
+	// it isn't particularly useful--should use the index for
+	// metadata and not a separate s3 object.
 	newindexEntry := index.BlogIndexEntry{PostS3Loc: postS3Uri,
 		PostMetaS3Loc: "nothinyet.metadataisinline",
 		CreatedTime:   eventTime}

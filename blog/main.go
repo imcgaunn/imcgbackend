@@ -50,7 +50,9 @@ func GetBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 	}
 	post, err := index.FetchPostFromS3ByUri(postIdxEntry.PostS3Loc)
 	if err != nil {
-		return apigateway.BuildFailureResponse("d:( failed fetch )"), err
+		return apigateway.BuildFailureResponse("d:( failed fetch )", map[string]string{
+			"Access-Control-Allow-Origin" : "*",
+			"Content-Type": "text/plain"}), err
 	}
 	return apigateway.BuildSuccessResponse(post.Content, map[string]string{
 		"Access-Control-Allow-Origin" : "*",

@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:41d7f0a1a50ed7c669a211285cc36780023ae019c043166a25cba66613dbb48b"
+  digest = "1:d5039f72505274cddd25fef3b4790e7d985eaf063a0c7df1363ed6292ddc30fb"
   name = "github.com/aws/aws-lambda-go"
   packages = [
     "events",
@@ -15,7 +15,7 @@
   version = "v1.0.1"
 
 [[projects]]
-  digest = "1:413443b87e4881a8c9f9b64bca9ed7d96458466f9654aef3b3813e1714f0ef4f"
+  digest = "1:f9dc8648e19ca5c4ccdf32e13301eaaff14a6662826c98926ba401d98bdea315"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -56,7 +56,7 @@
   version = "v1.14.8"
 
 [[projects]]
-  digest = "1:f7c22bf37088211029335cd4d356774eeca0db1af4448e5b8178386090f98dfb"
+  digest = "1:617b3e0f5989d4ff866a1820480990c65dfc9257eb080da749a45e2d76681b02"
   name = "github.com/go-ini/ini"
   packages = ["."]
   pruneopts = ""
@@ -64,14 +64,14 @@
   version = "v1.37.0"
 
 [[projects]]
-  digest = "1:4f767a115bc8e08576f6d38ab73c376fc1b1cd3bb5041171c9e8668cc7739b52"
+  digest = "1:6f49eae0c1e5dab1dafafee34b207aeb7a42303105960944828c2079b92fc88e"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
   pruneopts = ""
   revision = "0b12d6b5"
 
 [[projects]]
-  digest = "1:dad94a3d74862778314e0ef5f5e7d8dac64931bd5b5823b192b0fb043507e016"
+  digest = "1:bc03901fc8f0965ccba8bc453eae21a9b04f95999eab664c7de6dc7290f4e8f4"
   name = "github.com/mattn/go-sqlite3"
   packages = ["."]
   pruneopts = ""
@@ -80,7 +80,7 @@
 
 [[projects]]
   branch = "v1"
-  digest = "1:0ab9820bc2f3ef99c691141ed1c1367faf60415dffbbc6e7c815c384d9974c52"
+  digest = "1:46092971aee6cfcb2b5d46ff9bbf9cd19a47d45c90a1f5c3b14d4d139fbf9bc0"
   name = "olympos.io/encoding/edn"
   packages = ["."]
   pruneopts = ""
