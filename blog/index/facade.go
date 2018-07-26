@@ -17,7 +17,8 @@ import (
 type BlogIndexEntry struct {
 	ID            int64     `edn:"id"`
 	PostS3Loc     string    `edn:"post-s3-loc"`
-	PostMetaS3Loc string    `edn:"post-meta-s3-loc"`
+	Title         string    `edn:"title"`
+	Tags          string    `edn:"tags"`
 	CreatedTime   time.Time `edn:"created-time"`
 }
 
@@ -29,11 +30,12 @@ type BlogPost struct {
 var PostBucket string = "imcgaunn-blog-posts"
 var IndexDbPath string = "index.sqlite"
 
-func CreateIndexTable(tableName string, db *sql.DB) error {
-	createStatement := `CREATE TABLE blogposts
+func CreateIndexTable(db *sql.DB) error {
+	createStatement := `CREATE TABLE blogindex
 (ID INTEGER PRIMARY KEY ASC,
  post_s3_loc text,
- post_meta_s3_loc text,
+ title text,
+ tags text,
  created_time date)`
 	stmnt, err := db.Prepare(createStatement)
 	if err != nil {
@@ -45,23 +47,27 @@ func CreateIndexTable(tableName string, db *sql.DB) error {
 }
 
 func AddIndexEntry(e BlogIndexEntry, db *sql.DB) (sql.Result, error) {
-	insertStatement := `INSERT INTO blogposts
-(post_s3_loc, post_meta_s3_loc, created_time)
-VALUES(?, ?, ?)`
+	insertStatement := `INSERT INTO blogindex
+(post_s3_loc,
+ title,
+ tags,
+ created_time)
+VALUES(?, ?, ?, ?)`
 	stmnt, err := db.Prepare(insertStatement)
 	if err != nil {
 		fmt.Println(err)
 		panic("failed to prepare index entry insert statement")
 	}
 	res, err := stmnt.Exec(e.PostS3Loc,
-		e.PostMetaS3Loc,
+		e.Title,
+		e.Tags,
 		e.CreatedTime.Format(time.UnixDate))
 	fmt.Println(res)
 	return res, err
 }
 
 func RemoveIndexEntry(entryId int64, db *sql.DB) error {
-	stmnt, err := db.Prepare("DELETE FROM blogposts WHERE ID=?")
+	stmnt, err := db.Prepare("DELETE FROM blogindex WHERE ID=?")
 	if err != nil {
 		fmt.Println(err)
 		panic("failed to prepare index entry delete statement")
@@ -72,14 +78,14 @@ func RemoveIndexEntry(entryId int64, db *sql.DB) error {
 
 func GetIndexEntry(entryId int64, db *sql.DB) (BlogIndexEntry, error) {
 	e := &BlogIndexEntry{}
-	row := db.QueryRow("SELECT * FROM blogposts WHERE ID=$1", entryId)
-	err := row.Scan(&e.ID, &e.PostS3Loc, &e.PostMetaS3Loc, &e.CreatedTime)
+	row := db.QueryRow("SELECT * FROM blogindex WHERE ID=$1", entryId)
+	err := row.Scan(&e.ID, &e.PostS3Loc, &e.Title, &e.Tags, &e.CreatedTime)
 	return *e, err
 }
 
 func GetAllIndexEntries(db *sql.DB) ([]BlogIndexEntry, error) {
 	entries := []BlogIndexEntry{}
-	rows, err := db.Query("SELECT * FROM blogposts")
+	rows, err := db.Query("SELECT * FROM blogindex")
 	if err != nil {
 		return entries, err
 	}
@@ -88,7 +94,8 @@ func GetAllIndexEntries(db *sql.DB) ([]BlogIndexEntry, error) {
 		e := &BlogIndexEntry{}
 		err = rows.Scan(&e.ID,
 			&e.PostS3Loc,
-			&e.PostMetaS3Loc,
+			&e.Title,
+			&e.Tags,
 			&e.CreatedTime)
 		if err != nil {
 			return entries, err
@@ -103,8 +110,8 @@ func GetAllIndexEntries(db *sql.DB) ([]BlogIndexEntry, error) {
 
 func GetIndexEntryByS3Location(location string, db *sql.DB) (BlogIndexEntry, error) {
 	e := &BlogIndexEntry{}
-	row := db.QueryRow("SELECT * from blogposts WHERE post_s3_loc=$1", location)
-	err := row.Scan(&e.ID, &e.PostS3Loc, &e.PostMetaS3Loc, &e.CreatedTime)
+	row := db.QueryRow("SELECT * from blogindex WHERE post_s3_loc=$1", location)
+	err := row.Scan(&e.ID, &e.PostS3Loc, &e.Title, &e.Tags, &e.CreatedTime)
 	return *e, err
 }
 

@@ -45,7 +45,7 @@ func downloadIndexIfNecessary() *sql.DB {
 	return conn
 }
 
-func processIncomingPost(bucket string, key string, eventTime time.Time, downloader *s3manager.Downloader, uploader *s3manager.Uploader) {
+func FetchPostString(downloader *s3manager.Downloader, bucket string, key string) string {
 	buffer := aws.NewWriteAtBuffer(make([]byte, 1024))
 	bytesRead, err := downloader.Download(buffer, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
@@ -54,20 +54,59 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 	if err != nil {
 		panic(err)
 	}
+	postContent := string(buffer.Bytes()[:bytesRead])
+	return postContent
+}
+
+func existingIndexEntry(postUri string, conn *sql.DB) bool {
+	index.GetIndexEntryByS3Location(postUri, conn)
+	ie, err := index.GetIndexEntryByS3Location(postS3Uri, db)
+	if err != nil && ie.ID != 0 {
+		log.Printf("there's already an index entry for this post [%s]\n", postS3Uri)
+		log.Print("the existing index entry has this info: ")
+		log.Print(ie)
+		return true
+	}
+	return false
+}
+
+func rebuildPostBody(postLines []string) string {
+	postBodyBuilder := strings.Builder{}
+	for str := range linesAfterHeader {
+		postBodyBuilder.WriteString(str)
+	}
+	postBodyString := postBodyBuilder.String()
+	log.Printf("compiled post body after header as single string: %s\n\n", postBodyString)
+	return postBodyString
+}
+
+func persistChangesToStorage(indexDbPath string,  postContent string, bucket string, key string, uploader *s3manager.Uploader) error {
+	log.Print("persisting db changes to storage backend (s3)")
+	err = index.PutIndexDbFile(indexDbPath)
+	if err != nil {
+		log.Printf("failed to persist index file to s3\n")
+		return err
+	}
+	uploadParams := &s3manager.UploadInput{
+		Bucket: bucket,
+		Key: key,
+		Body: strings.NewReader(postContent)
+	}
+	return uploader.Upload(uploadParams)
+}
+
+func processIncomingPost(bucket string, key string, eventTime time.Time, downloader *s3manager.Downloader, uploader *s3manager.Uploader) {
+	
+	postContent := FetchPostString(downloader, bucket, key)
 
 	db := downloadIndexIfNecessary()
 	postS3Uri := fmt.Sprintf("s3://%s/%s", bucket, key)
-	ie, err := index.GetIndexEntryByS3Location(postS3Uri, db)
-	if err != nil && ie.ID != 0 {
-		log.Printf("there's already an index entry for this post [%s] so i'm ignoring it\n", postS3Uri)
-		log.Print("the existing index entry has this info: ")
-		log.Print(ie)
+	if existingIndexEntry(postS3Uri, db) {
 		return
 	}
-
-	postContent := string(buffer.Bytes()[:bytesRead])
+	
 	postLines := strings.Split(postContent, "\n")
-	headerLines, err := post.ExtractPostHeaderLines(postLines)
+	headerLines, headerEndIdx, err := post.ExtractPostHeaderLines(postLines)
 	headerPresent := true
 	if err != nil {
 		log.Printf("there doesn't seem to be a real header. too bad :(")
@@ -77,29 +116,37 @@ func processIncomingPost(bucket string, key string, eventTime time.Time, downloa
 		postMetaData := post.ParseHeaderLines(headerLines)
 		log.Print(postMetaData)
 	}
-
-	// TODO: add metadata that we just retrieved
-	// to the index entry.
-	// Should get rid of PostMetaS3Loc because
-	// it isn't particularly useful--should use the index for
-	// metadata and not a separate s3 object.
+	postTitle := postMetaData["title"]
+	postTags := postMetaData["tags"]
+	if !postTitle {
+		log.Fatal("missing required metadata attribute 'title'")
+	}
+	
+	linesAfterHeader := postLines[headerEndIdx + 1]
+	postString := rebuildPostBody(linesAfterHeader)
+	
 	newindexEntry := index.BlogIndexEntry{PostS3Loc: postS3Uri,
-		PostMetaS3Loc: "nothinyet.metadataisinline",
+		Title:         postTitle,
+		Tags:          postTags,
 		CreatedTime:   eventTime}
 	log.Print("adding new index entry to the database")
 	res, err := index.AddIndexEntry(newindexEntry, db)
 	if err != nil {
-		log.Printf("failed to add index entry to the database")
+		log.Printf("failed to add index entry to the database\n")
 		log.Fatal(err)
 	}
-
-	db.Close()
 	log.Print(res)
 	log.Print("added to database: ")
 	log.Print(newindexEntry)
-	log.Print("persisting db changes to storage backend (s3)")
-	err = index.PutIndexDbFile("/tmp/index.sqlite")
+	db.Close()
+
+	err = persistChangesToStorage("/tmp/index.sqlite",
+		postString,
+		bucket,
+		key,
+		uploader)
 	if err != nil {
+		log.Printf("failed to persist indexer changes to backend storage")
 		log.Fatal(err)
 	}
 }
@@ -108,6 +155,7 @@ func updateBlogIndex(ctx context.Context, s3Event events.S3Event) {
 	log.Printf("we are about to update the index! wish me luck")
 	for _, record := range s3Event.Records {
 		printEventDetails(record)
+		
 		// bail out if this isn't a putObject event
 		// no test events allowed!
 		if record.EventName != "ObjectCreated:Put" {
@@ -116,6 +164,7 @@ func updateBlogIndex(ctx context.Context, s3Event events.S3Event) {
 
 		evtTime := record.EventTime
 		s3 := record.S3
+		
 		downloader := index.BuildS3DownloadManager()
 		uploader := index.BuildS3UploadManager()
 		processIncomingPost(s3.Bucket.Name,
