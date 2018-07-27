@@ -13,6 +13,7 @@ import (
 
 	"imcgbackend/aws/apigateway"
 	"imcgbackend/blog/index"
+	"imcgbackend/blog/post"
 )
 
 func GetBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -48,13 +49,13 @@ func GetBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (ev
 			"Access-Control-Allow-Origin" : "*",
 			"Content-Type": "text/plain"}), err
 	}
-	post, err := index.FetchPostFromS3ByUri(postIdxEntry.PostS3Loc)
+	blogpost, err := post.FetchPostFromS3ByUri(postIdxEntry.PostS3Loc)
 	if err != nil {
 		return apigateway.BuildFailureResponse("d:( failed fetch )", map[string]string{
 			"Access-Control-Allow-Origin" : "*",
 			"Content-Type": "text/plain"}), err
 	}
-	return apigateway.BuildSuccessResponse(post.Content, map[string]string{
+	return apigateway.BuildSuccessResponse(blogpost.Content, map[string]string{
 		"Access-Control-Allow-Origin" : "*",
 		"Content-Type": "text/plain"}), nil
 }

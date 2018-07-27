@@ -32,10 +32,11 @@ func createAndPopulateIndexTableWithTestData() *sql.DB {
 	if err != nil {
 		log.Fatal("failed to open sqlite database in memory")
 	}
-	index.CreateIndexTable("blogposts", db)
+	index.CreateIndexTable(db)
 	for i := 0; i < 444; i++ {
 		index.AddIndexEntry(index.BlogIndexEntry{PostS3Loc: fmt.Sprintf("loc%d", i),
-			PostMetaS3Loc: fmt.Sprintf("metaLoc%d", i),
+			Title: fmt.Sprintf("great%d", i),
+			Tags: "cool, nice",
 			CreatedTime:   time.Now()}, db)
 	}
 	return db

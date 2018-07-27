@@ -3,28 +3,19 @@ package index
 import (
 	"database/sql"
 	"fmt"
+	s3Utl "imcgbackend/aws/s3"
 	"os"
-	"regexp"
-	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type BlogIndexEntry struct {
-	ID            int64     `edn:"id"`
-	PostS3Loc     string    `edn:"post-s3-loc"`
-	Title         string    `edn:"title"`
-	Tags          string    `edn:"tags"`
-	CreatedTime   time.Time `edn:"created-time"`
-}
-
-type BlogPost struct {
-	Title   string
-	Content string
+	ID          int64     `edn:"id"`
+	PostS3Loc   string    `edn:"post-s3-loc"`
+	Title       string    `edn:"title"`
+	Tags        string    `edn:"tags"`
+	CreatedTime time.Time `edn:"created-time"`
 }
 
 var PostBucket string = "imcgaunn-blog-posts"
@@ -115,60 +106,8 @@ func GetIndexEntryByS3Location(location string, db *sql.DB) (BlogIndexEntry, err
 	return *e, err
 }
 
-func FetchPostFromS3ByUri(s3Uri string) (BlogPost, error) {
-	bucket, key := splitS3Uri(s3Uri)
-	post, err := FetchPostFromS3(bucket, key)
-	return post, err
-}
-
-func splitS3Uri(s3Uri string) (bucket string, key string) {
-	splitExp := regexp.MustCompile("/") // just die
-	uriComponents := splitExp.Split(s3Uri, -1)
-	return uriComponents[2], strings.Join(uriComponents[3:], "/")
-}
-
-func FetchPostFromS3(bucket string, key string) (BlogPost, error) {
-	stringBuilder := strings.Builder{}
-	PostBytes, err := FetchBytesFromS3(bucket, key)
-	if err != nil {
-		return BlogPost{}, err
-	}
-	stringBuilder.Write(PostBytes)
-	return BlogPost{
-		Title:   "Great", // TODO: real code for this
-		Content: stringBuilder.String(),
-	}, err
-
-}
-
-func FetchBytesFromS3(bucket string, key string) ([]byte, error) {
-	awsBuff := &aws.WriteAtBuffer{}
-	downloader := BuildS3DownloadManager()
-	_, err := downloader.Download(awsBuff, &s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	return awsBuff.Bytes(), err
-}
-
-func BuildS3DownloadManager() *s3manager.Downloader {
-	sess := session.Must(session.NewSession())
-	svc := s3manager.NewDownloader(sess)
-	return svc
-}
-
-func BuildS3UploadManager() *s3manager.Uploader {
-	sess := session.Must(session.NewSession())
-	svc := s3manager.NewUploader(sess)
-	return svc
-}
-
 func GetIndexDbFile() ([]byte, error) {
-	fmt.Println("attempting to fetch index file")
-	indexFile, err := FetchBytesFromS3(PostBucket, IndexDbPath)
-	if err != nil {
-		fmt.Println("Failed to fetch index file :(")
-	}
+	indexFile, err := s3Utl.FetchBytesFromS3(PostBucket, IndexDbPath)
 	return indexFile, err
 }
 
@@ -180,7 +119,7 @@ func PutIndexDbFile(localPath string) error {
 		fmt.Print(err)
 		return err
 	}
-	uploader := BuildS3UploadManager()
+	uploader := s3Utl.BuildS3UploadManager()
 	uploadInput := s3manager.UploadInput{
 		Bucket: &indexBucket,
 		Key:    &indexKey,

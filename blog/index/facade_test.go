@@ -9,6 +9,7 @@ import (
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
+	"imcgbackend/aws/s3"
 )
 
 func TestCanAddAndRemoveIndexEntry(t *testing.T) {
@@ -118,7 +119,7 @@ func TestCanRetrieveByS3Uri(t *testing.T) {
 
 func TestSplitS3Uri(t *testing.T) {
 	testS3Uri := "s3://imcgaunn-blog-posts/cool/key/yo"
-	bucket, key := splitS3Uri(testS3Uri)
+	bucket, key := s3.SplitS3Uri(testS3Uri)
 	t.Log(fmt.Sprintf("bucket: %s", bucket))
 	t.Log(fmt.Sprintf("key: %s", key))
 	if bucket != "imcgaunn-blog-posts" {
