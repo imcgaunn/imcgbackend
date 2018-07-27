@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func ExtractPostHeaderLines(postLines []string) ([]string, error) {
+func ExtractPostHeaderLines(postLines []string) ([]string, int, error) {
 	// fetch metadata from the beginning of the post
 	// scan until you see prelude's bottom marker.
 	lastHeaderRowIdx := -1
@@ -20,9 +20,9 @@ func ExtractPostHeaderLines(postLines []string) ([]string, error) {
 	}
 	if lastHeaderRowIdx > 0 {
 		headerLines := postLines[:lastHeaderRowIdx]
-		return headerLines, nil
+		return headerLines, lastHeaderRowIdx, nil
 	}
-	return nil, errors.New("failed to extract header")
+	return nil, lastHeaderRowIdx, errors.New("failed to extract header")
 }
 
 func ParseHeaderLines(lines []string) map[string]string {

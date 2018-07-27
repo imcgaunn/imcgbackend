@@ -41,5 +41,13 @@ functions:
       - http:
           path: blog
           method: get
+          cors: true
   blog-indexer:
     handler: bin/blog_indexer
+  blogindex:
+    handler: bin/blogindex
+    events:
+      - http:
+          path: blog/index
+          method: get
+          cors: true

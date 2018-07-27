@@ -6,8 +6,10 @@ import (
 	"testing"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"log"
+
+	_ "github.com/mattn/go-sqlite3"
+	"imcgbackend/aws/s3"
 )
 
 func TestCanAddAndRemoveIndexEntry(t *testing.T) {
@@ -19,10 +21,11 @@ func TestCanAddAndRemoveIndexEntry(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to open sqlite database in memory")
 	}
-	CreateIndexTable("blogposts", db)
+	CreateIndexTable(db)
 	res, _ := AddIndexEntry(BlogIndexEntry{
 		PostS3Loc:     "greatbucket/key/path/here",
-		PostMetaS3Loc: "greatbucket/key/path/here",
+		Title: "great title!",
+		Tags: "silly, billy",
 		CreatedTime:   time.Now()}, db)
 	id, err := res.LastInsertId()
 	t.Log(fmt.Sprintf("inserted at id: %d", id))
@@ -42,11 +45,12 @@ func createAndPopulateIndexTableWithTestData() *sql.DB {
 	if err != nil {
 		log.Fatal("failed to open sqlite database in memory")
 	}
-	CreateIndexTable("blogposts", db)
+	CreateIndexTable(db)
 	for i := 0; i < 444; i++ {
 		AddIndexEntry(BlogIndexEntry{PostS3Loc: fmt.Sprintf("loc%d", i),
-		PostMetaS3Loc: fmt.Sprintf("metaLoc%d", i),
-		CreatedTime: time.Now()}, db)
+			Title: fmt.Sprintf("Great Title%d", i),
+			Tags: "all, posts, have, these",
+			CreatedTime:   time.Now()}, db)
 	}
 	return db
 }
@@ -68,11 +72,12 @@ func TestCanAddAndRetrieve(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to open sqlite database in memory")
 	}
-	CreateIndexTable("blogposts", db)
+	CreateIndexTable(db)
 	res, _ := AddIndexEntry(BlogIndexEntry{
 		ID:            111111,
 		PostS3Loc:     "greatbucket/key/path/here",
-		PostMetaS3Loc: "greatbucket/key/path/here",
+		Title:         "what a nice title!",
+		Tags:          "tag1, tag2",
 		CreatedTime:   time.Now()}, db)
 	id, err := res.LastInsertId()
 	if err != nil {
@@ -92,11 +97,12 @@ func TestCanRetrieveByS3Uri(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to open sqlite database in memory :(")
 	}
-	CreateIndexTable("blogposts", db)
+	CreateIndexTable(db)
 	res, _ := AddIndexEntry(BlogIndexEntry{
 		ID:            111111,
 		PostS3Loc:     "greatbucket/key/path/here",
-		PostMetaS3Loc: "doesntreallymatter/",
+		Title:         "Doesn't Matter!",
+		Tags:          "cool, school",
 		CreatedTime:   time.Now()}, db)
 	id, err := res.LastInsertId()
 	if err != nil {
@@ -113,7 +119,7 @@ func TestCanRetrieveByS3Uri(t *testing.T) {
 
 func TestSplitS3Uri(t *testing.T) {
 	testS3Uri := "s3://imcgaunn-blog-posts/cool/key/yo"
-	bucket, key := splitS3Uri(testS3Uri)
+	bucket, key := s3.SplitS3Uri(testS3Uri)
 	t.Log(fmt.Sprintf("bucket: %s", bucket))
 	t.Log(fmt.Sprintf("key: %s", key))
 	if bucket != "imcgaunn-blog-posts" {
