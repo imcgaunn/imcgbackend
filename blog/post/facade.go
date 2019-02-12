@@ -2,7 +2,7 @@ package post
 
 import (
 	"strings"
-	s3Utl "imcgbackend/aws/s3"
+	s3Utl "github.com/imcgaunn/imcgbackend/aws/s3"
 )
 
 

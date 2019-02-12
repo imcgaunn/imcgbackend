@@ -1,6 +1,6 @@
 FROM golang:latest 
 RUN mkdir -p /go/src/imcgbackend
-ADD . /go/src/imcgbackend/
+ADD . /go/src/github.com/imcgaunn/imcgbackend/
 WORKDIR /go/src/imcgbackend
 # Q: how to add software to golang container?
 # A: it's based on debian or alpine depending

@@ -11,9 +11,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	_ "github.com/mattn/go-sqlite3"
 
-	"imcgbackend/aws/apigateway"
-	"imcgbackend/blog/index"
-	"imcgbackend/blog/post"
+	"github.com/imcgaunn/imcgbackend/aws/apigateway"
+	"github.com/imcgaunn/imcgbackend/blog/index"
+	"github.com/imcgaunn/imcgbackend/blog/post"
 )
 
 func GetBlogPost(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {

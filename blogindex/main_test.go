@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"imcgbackend/blog/index"
+	"github.com/imcgaunn/imcgbackend/blog/index"
 	"log"
 	"testing"
 	"time"

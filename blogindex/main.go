@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
-	"imcgbackend/aws/apigateway"
-	"imcgbackend/blog/index"
+	"github.com/imcgaunn/imcgbackend/aws/apigateway"
+	"github.com/imcgaunn/imcgbackend/blog/index"
 	"io/ioutil"
 	"log"
 

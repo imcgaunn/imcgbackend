@@ -9,7 +9,7 @@ import (
 	"log"
 
 	_ "github.com/mattn/go-sqlite3"
-	"imcgbackend/aws/s3"
+	"github.com/imcgaunn/imcgbackend/aws/s3"
 )
 
 func TestCanAddAndRemoveIndexEntry(t *testing.T) {
